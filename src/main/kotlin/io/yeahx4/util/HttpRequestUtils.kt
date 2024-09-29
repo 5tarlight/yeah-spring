@@ -40,5 +40,19 @@ class HttpRequestUtils {
             return getKeyValue(header, ":")
                 ?: throw IllegalArgumentException("Invalid Header: $header")
         }
+
+        private fun parseJson(json: String): Map<String, String> {
+            return json.split(",")
+                .map { it.split(":") }
+                .associate { it[0].trim() to it[1].trim() }
+        }
+
+        fun parseBody(body: String, contentType: String): Map<String, String> {
+            return when (contentType) {
+                "application/x-www-form-urlencoded" -> parseQueryString(body)
+                "application/json" -> parseJson(body)
+                else -> emptyMap()
+            }
+        }
     }
 }

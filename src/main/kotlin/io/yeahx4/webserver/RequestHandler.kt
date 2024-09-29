@@ -1,6 +1,8 @@
 package io.yeahx4.webserver
 
 import io.yeahx4.model.User
+import io.yeahx4.util.HttpRequestUtils
+import io.yeahx4.util.IoUtils
 import io.yeahx4.webserver.controller.UserController
 import org.slf4j.LoggerFactory
 import java.io.BufferedReader
@@ -17,8 +19,6 @@ class RequestHandler(private val connection: Socket) : Thread() {
     private val userController = UserController()
 
     override fun run() {
-        log.info("New Client\tIP : ${connection.inetAddress}\tPort : ${connection.port}")
-
         try {
             connection.inputStream.use { input ->
                 connection.outputStream.use { output ->
@@ -50,6 +50,23 @@ class RequestHandler(private val connection: Socket) : Thread() {
                             responseElse(dos, statusCode, statusMessage)
                             return
                         }
+                    } else if (header.method == HttpMethod.POST) {
+                        val length = header.headers["Content-Length"]?.toInt() ?: 0
+                        val contentType = header.headers["Content-Type"] ?: "text/plain"
+                        val body = HttpRequestUtils.parseBody(IoUtils.readData(br, length), contentType)
+
+                        val user = User.fromParams(body)
+
+                        if (user == null) {
+                            logReq(header.method, 400, header.path)
+                            response400(dos)
+                            return
+                        }
+
+                        val (statusCode, statusMessage) = userController.signUp(user)
+                        logReq(header.method, statusCode, header.path)
+                        responseElse(dos, statusCode, statusMessage)
+                        return
                     }
 
                     logReq(header.method, 404, header.path)
