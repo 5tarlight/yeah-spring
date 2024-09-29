@@ -19,7 +19,7 @@ class HttpRequestUtils {
             val tokens = values.split(separator)
             return tokens.map { t -> getKeyValue(t, "=") }
                 .filter { it != null }
-                .associate { it!!.first to it.second }
+                .associate { it!!.first.trim() to it.second.trim() }
         }
 
         private fun getKeyValue(keyValue: String, regex: String): Pair<String, String>? {
@@ -30,7 +30,10 @@ class HttpRequestUtils {
             if (tokens.size < 2)
                 return null
 
-            return Pair(keyValue.slice(0 until tokens[0].length), keyValue.slice(tokens[0].length + 1 until keyValue.length))
+            return Pair(
+                keyValue.slice(0 until tokens[0].length).trim(),
+                keyValue.slice(tokens[0].length + 1 until keyValue.length).trim()
+            )
         }
 
         fun parseHeader(header: String): Pair<String, String> {

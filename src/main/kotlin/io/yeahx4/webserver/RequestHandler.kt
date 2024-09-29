@@ -22,12 +22,7 @@ class RequestHandler(private val connection: Socket) : Thread() {
                     val br = BufferedReader(InputStreamReader(DataInputStream(input)))
                     val header = RequestHeader(br)
 
-                    header.let {
-                        log.info("Method : ${it.method}")
-                        log.info("Path : ${it.path}")
-                        log.info("Version : ${it.version}")
-                        log.info("Headers : ${it.headers}")
-                    }
+                    log.info("${header.method} ${header.path}")
 
                     val body = "Hello, World!".toByteArray(Charsets.UTF_8)
                     response200Header(dos, body.size)
@@ -43,22 +38,6 @@ class RequestHandler(private val connection: Socket) : Thread() {
                 log.error("Failed to close socket: ${e.message}")
             }
         }
-    }
-
-    private fun readHeaders(br: BufferedReader): Map<String, String> {
-        val headers = mutableMapOf<String, String>()
-        var line: String?
-        while (br.readLine().also { line = it } != null) {
-            if (line == "") {
-                break
-            }
-
-            HttpRequestUtils.parseHeader(line!!).let {
-                headers[it.first] = it.second
-            }
-        }
-
-        return headers
     }
 
     private fun response200Header(dos: DataOutputStream, length: Int) {

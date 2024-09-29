@@ -18,7 +18,7 @@ class RequestHeader {
         headers = mutableMapOf()
         var line: String? = bufferedReader.readLine()
         while (line != null && line != "") {
-            HttpRequestUtils.parseHeader(line)?.let { (key, value) ->
+            HttpRequestUtils.parseHeader(line).let { (key, value) ->
                 headers[key] = value
             }
 

@@ -17,5 +17,9 @@ class Database {
         fun findAll(): List<User> {
             return users.values.toList()
         }
+
+        fun clear() {
+            users.clear()
+        }
     }
 }
