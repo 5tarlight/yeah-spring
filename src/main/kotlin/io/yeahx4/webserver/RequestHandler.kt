@@ -2,6 +2,7 @@ package io.yeahx4.webserver
 
 import io.yeahx4.model.User
 import io.yeahx4.util.HttpRequestUtils
+import io.yeahx4.util.HttpResponseUtils
 import io.yeahx4.util.IoUtils
 import io.yeahx4.webserver.controller.UserController
 import org.slf4j.LoggerFactory
@@ -31,8 +32,7 @@ class RequestHandler(private val connection: Socket) : Thread() {
 
                         if (body != null) {
                             logReq(header.method, 200, header.path)
-                            response200FileHeader(dos, body.size, header.path)
-                            responseBody(dos, body)
+                            HttpResponseUtils.responseFile(dos, header.path, body)
                             return
                         }
 
@@ -52,7 +52,7 @@ class RequestHandler(private val connection: Socket) : Thread() {
                     }
 
                     logReq(header.method, 404, header.path)
-                    response404(dos)
+                    HttpResponseUtils.responseCode(dos, 404, "Not Found")
                 }
             }
         } catch (e: IOException) {
@@ -69,13 +69,13 @@ class RequestHandler(private val connection: Socket) : Thread() {
     private fun responseUserCreate(dos: DataOutputStream, user: User?, header: RequestHeader) {
         if (user == null) {
             logReq(header.method, 400, header.path)
-            response400(dos)
+            HttpResponseUtils.responseCode(dos, 400, "Bad Request")
             return
         }
 
         val (statusCode, statusMessage) = userController.signUp(user)
         logReq(header.method, statusCode, header.path)
-        responseElse(dos, statusCode, statusMessage)
+        HttpResponseUtils.responseCode(dos, statusCode, statusMessage)
     }
 
     private fun logReq(method: HttpMethod, code: Int, path: String) {
@@ -89,73 +89,5 @@ class RequestHandler(private val connection: Socket) : Thread() {
         }
 
         return Files.readAllBytes(file.toPath())
-    }
-
-    private fun responseElse(dos: DataOutputStream, code: Int, message: String) {
-        try {
-            dos.writeBytes("HTTP/1.1 $code $message \r\n")
-            dos.writeBytes("Content-Type: text/html;charset=utf-8 \r\n")
-            dos.writeBytes("\r\n")
-            dos.writeBytes("<html><body><h1>$code $message</h1></body></html>\r\n")
-            dos.flush()
-        } catch (e: IOException) {
-            log.error(e.message)
-        }
-    }
-
-    private fun response400(dos: DataOutputStream) {
-        try {
-            dos.writeBytes("HTTP/1.1 400 Bad Request \r\n")
-            dos.writeBytes("Content-Type: text/html;charset=utf-8 \r\n")
-            dos.writeBytes("\r\n")
-            dos.writeBytes("<html><body><h1>400 Bad Request</h1></body></html>\r\n")
-            dos.flush()
-        } catch (e: IOException) {
-            log.error(e.message)
-        }
-    }
-
-    private fun response404(dos: DataOutputStream) {
-        try {
-            dos.writeBytes("HTTP/1.1 404 Not Found \r\n")
-            dos.writeBytes("Content-Type: text/html;charset=utf-8 \r\n")
-            dos.writeBytes("\r\n")
-            dos.writeBytes("<html><body><h1>Not Found</h1></body></html>\r\n")
-            dos.flush()
-        } catch (e: IOException) {
-            log.error(e.message)
-        }
-    }
-
-    private fun response200FileHeader(dos: DataOutputStream, length: Int, path: String) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n")
-            dos.writeBytes("Content-Type: ${HttpRequestUtils.getContentType(path)};charset=utf-8 \r\n")
-            dos.writeBytes("Content-Length: $length \r\n")
-            dos.writeBytes("\r\n")
-        } catch (e: IOException) {
-            log.error(e.message)
-        }
-    }
-
-    private fun response200Header(dos: DataOutputStream, length: Int) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n")
-            dos.writeBytes("Content-Type: text/html;charset=utf-8 \r\n")
-            dos.writeBytes("Content-Length: $length \r\n")
-            dos.writeBytes("\r\n")
-        } catch (e: IOException) {
-            log.error(e.message)
-        }
-    }
-
-    private fun responseBody(dos: DataOutputStream, body: ByteArray) {
-        try {
-            dos.write(body, 0, body.size)
-            dos.writeBytes("\r\n")
-            dos.flush()
-        } catch (e: IOException) {
-            log.error(e.message)
-        }
     }
 }
