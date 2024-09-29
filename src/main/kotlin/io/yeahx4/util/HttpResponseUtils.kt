@@ -33,5 +33,16 @@ class HttpResponseUtils {
                 log.error(e.message)
             }
         }
+
+        fun redirect(dos: DataOutputStream, location: String) {
+            try {
+                dos.writeBytes("HTTP/1.1 302 Found \r\n")
+                dos.writeBytes("Location: $location \r\n")
+                dos.writeBytes("\r\n")
+                dos.flush()
+            } catch (e: IOException) {
+                log.error(e.message)
+            }
+        }
     }
 }

@@ -75,7 +75,11 @@ class RequestHandler(private val connection: Socket) : Thread() {
 
         val (statusCode, statusMessage) = userController.signUp(user)
         logReq(header.method, statusCode, header.path)
-        HttpResponseUtils.responseCode(dos, statusCode, statusMessage)
+        if (statusCode == 201) {
+            HttpResponseUtils.redirect(dos, "/index.html")
+        } else {
+            HttpResponseUtils.responseCode(dos, statusCode, statusMessage)
+        }
     }
 
     private fun logReq(method: HttpMethod, code: Int, path: String) {
