@@ -22,6 +22,12 @@ class RequestHandler(private val connection: Socket) : Thread() {
             }
         } catch (e: IOException) {
             log.error(e.message)
+        } finally {
+            try {
+                connection.close()
+            } catch (e: IOException) {
+                log.error("Failed to close socket: ${e.message}")
+            }
         }
     }
 
