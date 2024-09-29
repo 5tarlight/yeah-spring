@@ -1,8 +1,12 @@
 package io.yeahx4.webserver
 
+import io.yeahx4.util.HttpRequestUtils
 import org.slf4j.LoggerFactory
+import java.io.BufferedReader
+import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
+import java.io.InputStreamReader
 import java.net.Socket
 
 class RequestHandler(private val connection: Socket) : Thread() {
@@ -15,6 +19,8 @@ class RequestHandler(private val connection: Socket) : Thread() {
             connection.inputStream.use { input ->
                 connection.outputStream.use { output ->
                     val dos = DataOutputStream(output)
+                    val br = BufferedReader(InputStreamReader(DataInputStream(input)))
+
                     val body = "Hello, World!".toByteArray(Charsets.UTF_8)
                     response200Header(dos, body.size)
                     responseBody(dos, body)
@@ -29,6 +35,22 @@ class RequestHandler(private val connection: Socket) : Thread() {
                 log.error("Failed to close socket: ${e.message}")
             }
         }
+    }
+
+    private fun readHeaders(br: BufferedReader): Map<String, String> {
+        val headers = mutableMapOf<String, String>()
+        var line: String?
+        while (br.readLine().also { line = it } != null) {
+            if (line == "") {
+                break
+            }
+
+            HttpRequestUtils.parseHeader(line!!).let {
+                headers[it.first] = it.second
+            }
+        }
+
+        return headers
     }
 
     private fun response200Header(dos: DataOutputStream, length: Int) {
