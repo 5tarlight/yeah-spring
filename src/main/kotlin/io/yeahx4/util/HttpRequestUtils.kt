@@ -27,10 +27,10 @@ class HttpRequestUtils {
                 return null
 
             val tokens = keyValue.split(regex)
-            if (tokens.size != 2)
+            if (tokens.size < 2)
                 return null
 
-            return Pair(tokens[0].trim(), tokens[1].trim())
+            return Pair(keyValue.slice(0 until tokens[0].length), keyValue.slice(tokens[0].length + 1 until keyValue.length))
         }
 
         fun parseHeader(header: String): Pair<String, String> {

@@ -20,6 +20,14 @@ class RequestHandler(private val connection: Socket) : Thread() {
                 connection.outputStream.use { output ->
                     val dos = DataOutputStream(output)
                     val br = BufferedReader(InputStreamReader(DataInputStream(input)))
+                    val header = RequestHeader(br)
+
+                    header.let {
+                        log.info("Method : ${it.method}")
+                        log.info("Path : ${it.path}")
+                        log.info("Version : ${it.version}")
+                        log.info("Headers : ${it.headers}")
+                    }
 
                     val body = "Hello, World!".toByteArray(Charsets.UTF_8)
                     response200Header(dos, body.size)
