@@ -31,23 +31,14 @@ class RequestHandler(private val connection: Socket) : Thread() {
 
                         if (body != null) {
                             logReq(header.method, 200, header.path)
-                            response200Header(dos, body.size)
+                            response200FileHeader(dos, body.size, header.path)
                             responseBody(dos, body)
                             return
                         }
 
                         if (header.path == "/user/create") {
                             val user = User.fromParams(header.params)
-
-                            if (user == null) {
-                                logReq(header.method, 400, header.path)
-                                response400(dos)
-                                return
-                            }
-
-                            val (statusCode, statusMessage) = userController.signUp(user)
-                            logReq(header.method, statusCode, header.path)
-                            responseElse(dos, statusCode, statusMessage)
+                            responseUserCreate(dos, user, header)
                             return
                         }
                     } else if (header.method == HttpMethod.POST) {
@@ -56,16 +47,7 @@ class RequestHandler(private val connection: Socket) : Thread() {
                         val body = HttpRequestUtils.parseBody(IoUtils.readData(br, length), contentType)
 
                         val user = User.fromParams(body)
-
-                        if (user == null) {
-                            logReq(header.method, 400, header.path)
-                            response400(dos)
-                            return
-                        }
-
-                        val (statusCode, statusMessage) = userController.signUp(user)
-                        logReq(header.method, statusCode, header.path)
-                        responseElse(dos, statusCode, statusMessage)
+                        responseUserCreate(dos, user, header)
                         return
                     }
 
@@ -82,6 +64,18 @@ class RequestHandler(private val connection: Socket) : Thread() {
                 log.error("Failed to close socket: ${e.message}")
             }
         }
+    }
+
+    private fun responseUserCreate(dos: DataOutputStream, user: User?, header: RequestHeader) {
+        if (user == null) {
+            logReq(header.method, 400, header.path)
+            response400(dos)
+            return
+        }
+
+        val (statusCode, statusMessage) = userController.signUp(user)
+        logReq(header.method, statusCode, header.path)
+        responseElse(dos, statusCode, statusMessage)
     }
 
     private fun logReq(method: HttpMethod, code: Int, path: String) {
@@ -128,6 +122,17 @@ class RequestHandler(private val connection: Socket) : Thread() {
             dos.writeBytes("\r\n")
             dos.writeBytes("<html><body><h1>Not Found</h1></body></html>\r\n")
             dos.flush()
+        } catch (e: IOException) {
+            log.error(e.message)
+        }
+    }
+
+    private fun response200FileHeader(dos: DataOutputStream, length: Int, path: String) {
+        try {
+            dos.writeBytes("HTTP/1.1 200 OK \r\n")
+            dos.writeBytes("Content-Type: ${HttpRequestUtils.getContentType(path)};charset=utf-8 \r\n")
+            dos.writeBytes("Content-Length: $length \r\n")
+            dos.writeBytes("\r\n")
         } catch (e: IOException) {
             log.error(e.message)
         }
