@@ -1,8 +1,6 @@
 package io.yeahx4.util
 
-import io.yeahx4.webserver.RequestHeader
 import org.slf4j.LoggerFactory
-import java.io.BufferedReader
 import java.io.DataOutputStream
 import java.io.IOException
 
@@ -12,11 +10,10 @@ class HttpResponseUtils {
 
         fun responseCode(dos: DataOutputStream, code: Int, message: String) {
             try {
-                dos.writeBytes("HTTP/1.1 $code $message \r\n")
-                dos.writeBytes("Content-Type: text/html;charset=utf-8 \r\n")
-                dos.writeBytes("\r\n")
-                dos.writeBytes("<html><body><h1>$code $message</h1></body></html>\r\n")
-                dos.flush()
+                ResponseBuilder(dos, code, message)
+                    .header("Content-Type", "text/html;charset=utf-8")
+                    .body("<html><body><h1>$code $message</h1></body></html>".toByteArray())
+                    .build()
             } catch (e: IOException) {
                 log.error(e.message)
             }
@@ -24,13 +21,11 @@ class HttpResponseUtils {
 
         fun responseFile(dos: DataOutputStream, path: String, body: ByteArray) {
             try {
-                dos.writeBytes("HTTP/1.1 200 OK \r\n")
-                dos.writeBytes("Content-Type: ${HttpRequestUtils.getContentType(path)};charset=utf-8 \r\n")
-                dos.writeBytes("Content-Length: ${body.size} \r\n")
-                dos.writeBytes("\r\n")
-                dos.write(body, 0, body.size)
-                dos.writeBytes("\r\n")
-                dos.flush()
+                ResponseBuilder(dos, 200, "OK")
+                    .header("Content-Type", HttpRequestUtils.getContentType(path))
+                    .header("Content-Length", body.size.toString())
+                    .body(body)
+                    .build()
             } catch (e: IOException) {
                 log.error(e.message)
             }
@@ -46,16 +41,5 @@ class HttpResponseUtils {
                 log.error(e.message)
             }
         }
-    }
-
-    fun readBodyRaw(br: BufferedReader, header: RequestHeader): String {
-        val length = header.headers["Content-Length"]?.toInt() ?: 0
-        return IoUtils.readData(br, length)
-    }
-
-    fun readBody(br: BufferedReader, header: RequestHeader): Map<String, String> {
-        val length = header.headers["Content-Length"]?.toInt() ?: 0
-        val contentType = header.headers["Content-Type"] ?: "text/plain"
-        return HttpRequestUtils.parseBody(readBodyRaw(br, header), contentType)
     }
 }

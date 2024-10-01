@@ -3,6 +3,7 @@ package io.yeahx4.webserver
 import io.yeahx4.util.HttpRequestUtils
 import io.yeahx4.util.HttpResponseUtils
 import io.yeahx4.util.IoUtils
+import io.yeahx4.webserver.controller.user.SignInController
 import io.yeahx4.webserver.controller.user.SignUpController
 import org.slf4j.LoggerFactory
 import java.io.BufferedReader
@@ -17,7 +18,8 @@ import java.nio.file.Files
 class RequestHandler(private val connection: Socket) : Thread() {
     private val log = LoggerFactory.getLogger(RequestHandler::class.java);
     private val postRoutes = mapOf(
-        "/user/create" to SignUpController()
+        "/user/create" to SignUpController(),
+        "/user/login" to SignInController()
     )
     private val getRoutes = mapOf(
         "/test" to SignUpController() // TODO: Remove this

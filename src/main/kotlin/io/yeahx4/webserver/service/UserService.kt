@@ -17,4 +17,9 @@ class UserService {
         log.info("User created\tuserId : ${user.userId},\tname : ${user.name}")
         return Pair(201, "Created")
     }
+
+    fun signIn(userId: String, password: String): User? {
+        val user = Database.findUserById(userId) ?: return null
+        return if (user.password == password) user else null
+    }
 }
