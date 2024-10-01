@@ -1,6 +1,7 @@
 package io.yeahx4.webserver.controller.user
 
 import io.yeahx4.util.HttpResponseUtils
+import io.yeahx4.util.ResponseBuilder
 import io.yeahx4.webserver.RequestHeader
 import io.yeahx4.webserver.controller.RequestController
 import io.yeahx4.webserver.service.UserService
@@ -27,9 +28,11 @@ class SignInController : RequestController {
 
             return 401
         } else {
-            // TODO : Set-Cookie 저장
-            HttpResponseUtils.redirect(res, "/index.html")
-            return 200
+            ResponseBuilder(res, 302, "Found")
+                .header("Location", "/index.html")
+                .header("Set-Cookie", "logined=true")
+                .build()
+            return 302
         }
     }
 }
