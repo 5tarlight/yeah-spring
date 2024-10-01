@@ -1,11 +1,9 @@
 package io.yeahx4.webserver
 
-import io.yeahx4.model.User
 import io.yeahx4.util.HttpRequestUtils
 import io.yeahx4.util.HttpResponseUtils
 import io.yeahx4.util.IoUtils
 import io.yeahx4.webserver.controller.user.SignUpController
-import io.yeahx4.webserver.service.UserService
 import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.DataInputStream
