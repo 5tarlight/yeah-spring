@@ -1,6 +1,8 @@
 package io.yeahx4.util
 
+import io.yeahx4.webserver.RequestHeader
 import org.slf4j.LoggerFactory
+import java.io.BufferedReader
 import java.io.DataOutputStream
 import java.io.IOException
 
@@ -44,5 +46,16 @@ class HttpResponseUtils {
                 log.error(e.message)
             }
         }
+    }
+
+    fun readBodyRaw(br: BufferedReader, header: RequestHeader): String {
+        val length = header.headers["Content-Length"]?.toInt() ?: 0
+        return IoUtils.readData(br, length)
+    }
+
+    fun readBody(br: BufferedReader, header: RequestHeader): Map<String, String> {
+        val length = header.headers["Content-Length"]?.toInt() ?: 0
+        val contentType = header.headers["Content-Type"] ?: "text/plain"
+        return HttpRequestUtils.parseBody(readBodyRaw(br, header), contentType)
     }
 }

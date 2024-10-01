@@ -1,11 +1,11 @@
-package io.yeahx4.webserver.controller
+package io.yeahx4.webserver.service
 
 import io.yeahx4.db.Database
 import io.yeahx4.model.User
 import org.slf4j.LoggerFactory
 
-class UserController {
-    private val log = LoggerFactory.getLogger(UserController::class.java)
+class UserService {
+    private val log = LoggerFactory.getLogger(UserService::class.java)
 
     fun signUp(user: User): Pair<Int, String> {
         if (Database.findUserById(user.userId) != null) {
