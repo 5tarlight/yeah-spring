@@ -5,6 +5,7 @@ import io.yeahx4.util.HttpResponseUtils
 import io.yeahx4.util.IoUtils
 import io.yeahx4.webserver.controller.user.SignInController
 import io.yeahx4.webserver.controller.user.SignUpController
+import io.yeahx4.webserver.controller.user.UserListController
 import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.DataInputStream
@@ -22,7 +23,7 @@ class RequestHandler(private val connection: Socket) : Thread() {
         "/user/login" to SignInController()
     )
     private val getRoutes = mapOf(
-        "/test" to SignUpController() // TODO: Remove this
+        "/user/list" to UserListController()
     )
 
     override fun run() {
