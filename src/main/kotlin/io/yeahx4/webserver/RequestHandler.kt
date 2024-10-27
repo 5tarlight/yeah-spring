@@ -5,7 +5,9 @@ import io.yeahx4.util.HttpRequestUtils
 import io.yeahx4.util.HttpResponseUtils
 import io.yeahx4.util.IoUtils
 import io.yeahx4.web.HttpMethod
-import io.yeahx4.webserver.controller.UserController
+import io.yeahx4.webserver.controller.user.SignInController
+import io.yeahx4.webserver.controller.user.SignUpController
+import io.yeahx4.webserver.controller.user.UserListController
 import org.slf4j.LoggerFactory
 import java.io.BufferedReader
 import java.io.DataInputStream
@@ -18,7 +20,13 @@ import java.nio.file.Files
 
 class RequestHandler(private val connection: Socket) : Thread() {
     private val log = LoggerFactory.getLogger(RequestHandler::class.java);
-    private val userController = UserController()
+    private val postRoutes = mapOf(
+        "/user/create" to SignUpController(),
+        "/user/login" to SignInController()
+    )
+    private val getRoutes = mapOf(
+        "/user/list" to UserListController()
+    )
 
     override fun run() {
         try {
@@ -35,11 +43,9 @@ class RequestHandler(private val connection: Socket) : Thread() {
                             logReq(header.method, 200, header.path)
                             HttpResponseUtils.responseFile(dos, header.path, body)
                             return
-                        }
-
-                        if (header.path == "/user/create") {
-                            val user = User.fromParams(header.params)
-                            responseUserCreate(dos, user, header)
+                        } else if (getRoutes.containsKey(header.path)) {
+                            val code = getRoutes[header.path]!!.response(br, dos, header, emptyMap())
+                            logReq(header.method, code, header.path)
                             return
                         }
                     } else if (header.method == HttpMethod.POST) {
@@ -47,9 +53,11 @@ class RequestHandler(private val connection: Socket) : Thread() {
                         val contentType = header.headers["Content-Type"] ?: "text/plain"
                         val body = HttpRequestUtils.parseBody(IoUtils.readData(br, length), contentType)
 
-                        val user = User.fromParams(body)
-                        responseUserCreate(dos, user, header)
-                        return
+                        if (postRoutes.containsKey(header.path)) {
+                            val code = postRoutes[header.path]?.response(br, dos, header, body)
+                            logReq(header.method, code!!, header.path)
+                            return
+                        }
                     }
 
                     logReq(header.method, 404, header.path)
@@ -64,22 +72,6 @@ class RequestHandler(private val connection: Socket) : Thread() {
             } catch (e: IOException) {
                 log.error("Failed to close socket: ${e.message}")
             }
-        }
-    }
-
-    private fun responseUserCreate(dos: DataOutputStream, user: User?, header: RequestHeader) {
-        if (user == null) {
-            logReq(header.method, 400, header.path)
-            HttpResponseUtils.responseCode(dos, 400, "Bad Request")
-            return
-        }
-
-        val (statusCode, statusMessage) = userController.signUp(user)
-        logReq(header.method, statusCode, header.path)
-        if (statusCode == 201) {
-            HttpResponseUtils.redirect(dos, "/index.html")
-        } else {
-            HttpResponseUtils.responseCode(dos, statusCode, statusMessage)
         }
     }
 
