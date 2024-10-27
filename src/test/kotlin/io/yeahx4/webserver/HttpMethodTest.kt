@@ -1,5 +1,6 @@
 package io.yeahx4.webserver
 
+import io.yeahx4.web.HttpMethod
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

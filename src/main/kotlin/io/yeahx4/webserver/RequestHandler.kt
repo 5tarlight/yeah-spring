@@ -4,6 +4,7 @@ import io.yeahx4.model.User
 import io.yeahx4.util.HttpRequestUtils
 import io.yeahx4.util.HttpResponseUtils
 import io.yeahx4.util.IoUtils
+import io.yeahx4.web.HttpMethod
 import io.yeahx4.webserver.controller.UserController
 import org.slf4j.LoggerFactory
 import java.io.BufferedReader

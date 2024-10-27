@@ -1,4 +1,4 @@
-package io.yeahx4.webserver
+package io.yeahx4.web
 
 enum class HttpMethod {
     GET,

@@ -1,6 +1,7 @@
 package io.yeahx4.webserver
 
 import io.yeahx4.util.HttpRequestUtils
+import io.yeahx4.web.HttpMethod
 import java.io.BufferedReader
 
 class RequestHeader {
