@@ -15,7 +15,7 @@ class HttpRequest(input: InputStream) {
         val parts = request.split(" ")
 
         method = HttpMethod.valueOf(parts[0])
-        path = parts[1]
+        path = parts[1].split("?")[0]
         version = parts[2]
         headers = mutableMapOf()
         params = mutableMapOf()
