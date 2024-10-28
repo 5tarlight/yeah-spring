@@ -9,6 +9,7 @@ class HttpRequest(input: InputStream) {
     val version: String
     val headers: Map<String, String>
     private val rawBody: String
+    val body: Map<String, String>
     val params: Map<String, String>
 
     init {
@@ -32,9 +33,11 @@ class HttpRequest(input: InputStream) {
 
         if (method == HttpMethod.POST) {
             val contentLength = headers["Content-Length"]?.toInt() ?: 0
-            rawBody = input.bufferedReader().readText().take(contentLength)
+            rawBody = reader.readText().take(contentLength)
+            body = HttpRequestUtils.parseBody(rawBody, headers["Content-Type"] ?: "")
         } else {
             rawBody = ""
+            body = emptyMap()
         }
 
         val rawPath = parts[1]

@@ -19,4 +19,17 @@ class HttpRequestTest {
         assertEquals("keep-alive", req.headers["Connection"])
         assertEquals("javajigi", req.params["userId"])
     }
+
+    @Test
+    fun request_POST() {
+        val input = FileInputStream(File("$testDir/Http_POST.txt"))
+        val req = HttpRequest(input)
+
+        assertEquals(HttpMethod.POST, req.method)
+        assertEquals("/user/create", req.path)
+        assertEquals("HTTP/1.1", req.version)
+        assertEquals("keep-alive", req.headers["Connection"])
+        assertEquals("javajigi", req.body["userId"])
+        assertEquals("password", req.body["password"])
+    }
 }
