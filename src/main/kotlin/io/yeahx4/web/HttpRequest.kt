@@ -1,5 +1,6 @@
 package io.yeahx4.web
 
+import io.yeahx4.util.HttpRequestUtils
 import java.io.InputStream
 
 class HttpRequest(input: InputStream) {
@@ -11,18 +12,18 @@ class HttpRequest(input: InputStream) {
     val params: Map<String, String>
 
     init {
-        val request = input.bufferedReader().readLine()
+        val reader = input.bufferedReader()
+        val request = reader.readLine()
         val parts = request.split(" ")
 
         method = HttpMethod.valueOf(parts[0])
         path = parts[1].split("?")[0]
         version = parts[2]
         headers = mutableMapOf()
-        params = mutableMapOf()
 
         var line: String?
         do {
-            line = input.bufferedReader().readLine()
+            line = reader.readLine()
             if (line != null && line.isNotEmpty()) {
                 val headerParts = line.split(": ")
                 headers[headerParts[0]] = headerParts[1]
@@ -36,13 +37,12 @@ class HttpRequest(input: InputStream) {
             rawBody = ""
         }
 
-        val queryIndex = path.indexOf("?")
+        val rawPath = parts[1]
+        val queryIndex = rawPath.indexOf("?")
         if (queryIndex != -1) {
-            val queryParams = path.substring(queryIndex + 1).split("&")
-            for (param in queryParams) {
-                val paramParts = param.split("=")
-                params[paramParts[0]] = paramParts[1]
-            }
+            params = HttpRequestUtils.parseQueryString(rawPath.substring(queryIndex + 1))
+        } else {
+            params = emptyMap()
         }
     }
 }
